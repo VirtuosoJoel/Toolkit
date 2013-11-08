@@ -1,0 +1,1 @@
+ocra "script.rb" --output "script.exe" --chdir-first --no-lzma --innosetup "script.iss"

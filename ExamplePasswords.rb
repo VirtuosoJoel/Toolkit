@@ -1,0 +1,15 @@
+module Passwords
+  GmailUser = 'example@gmail.com'
+  GmailPass = 'correct horse battery staple'
+  EmailUser = 'firstname.lastname'
+  EmailPass = 'mighty morphin power rangers'
+  EmailServer = 'mail.example.com'
+  EmailSuffix = '@example.com'
+  MyName = 'samus aran'
+  RDTCoreDomain = 'example.redetrack.com'
+  RDTTestDomain = 'testserver.example.redetrack.com'
+  OrgID = '<(;,,;<)'
+  ErrorAlert = 'Admin', 'Analyst'
+  WarrantyCreationList = 'This Guy', 'That Guy', 'Those Guys'
+  EncryptionKey = 'zoidberg'
+end

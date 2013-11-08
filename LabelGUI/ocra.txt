@@ -1,0 +1,1 @@
+ocra "LabelGUI.rbw" --output "LabelGUI.exe" --chdir-first --no-lzma --innosetup "LG.iss"

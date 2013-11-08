@@ -1,0 +1,1 @@
+ocra "Return Labels.rbw" --output "Return Labels.exe" --chdir-first --no-lzma --innosetup "RL.iss"
