@@ -9,7 +9,7 @@ class BankHolidays
   attr_reader :all
   
   def initialize
-    @all = Icalendar.parse( HTTParty.get( 'https://www.gov.uk/bank-holidays/england-and-wales.ics' ) ).first.events.map &:dtstart # { |e| e.dtstart }
+    @all = Icalendar.parse( HTTParty.get( 'https://www.gov.uk/bank-holidays/england-and-wales.ics' ) ).first.events.map &:dtstart
   end
   
   def next_working_day( date, weekdays=[1,2,3,4,5] )

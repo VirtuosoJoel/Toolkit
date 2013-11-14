@@ -5,7 +5,7 @@ require 'dl' #Lots of handy stuff
 require 'date' #Work with Dates
 require_relative 'rubyexcel/lib/lib/rubyexcel' # My shiny data handling gem
 require_relative 'Passwords' # Passwords & personal info
-require_relative 'Passwords' # Registry & encryption
+require_relative 'RegistryTools' # Registry & encryption
 
 class RDT
 
