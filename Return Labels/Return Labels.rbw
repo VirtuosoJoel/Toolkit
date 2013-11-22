@@ -241,8 +241,8 @@ MechReporter.new if defined?( Ocra )
 # Let there be a GUI!
 GUI = LabelGui.new
 
-# A bit of devious metaprogramming to pass through messages from the reporter
 class MechReporter
+  # A bit of devious metaprogramming to pass through messages from the reporter
   def puts( str )
     GUI.gui_puts str, false
   end
