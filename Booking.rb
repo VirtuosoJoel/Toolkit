@@ -477,21 +477,31 @@ class BookingStripSerials<Booking
   
   def serial_request
     loop do
-      
+    
+      historycounter = driver.span( id: 'historycounter' )
+      counter = historycounter.text.to_i
+    
       serial = inputbox( 'Scan The Serial Number:', 'Serial' )
       serial = case serial
       when nil
         raise StandardError, 'User Quit'
-      when /\AS/i
-        serial[1..-1]
+      when /\A.\z/
+        error 'Serial must be longer than 1 digit'
+        next
       else
-        serial
+        serial[0..-2]
       end
       
       driver.text_field( id: 'input_field' ).send_keys serial, :enter
       
-      # Print label here
+      if driver.alert.exists?(1)
+        driver.alert.close
+        next
+      end
       
+      # Print label here
+      Watir::Wait.until(5) { historycounter.text.to_i > counter } rescue next
+      driver.div(id: 'historyblock').divs.first.links.first.click rescue next
       
     end
   end
