@@ -7,6 +7,7 @@ require_relative '../MechReporter' # Reporter and link to RubyExcel
 
 class LabelGui < Gtk::Window
   include RegistryTools
+  include DateTools
 
   # Build the GUI
   def initialize
@@ -16,10 +17,10 @@ class LabelGui < Gtk::Window
   
     # Create the main window
     window = Gtk::Window.new
-    window.set_title 'RDT Label Printer'
+    window.set_title 'Label Printer'
     
     # Create a table: height, width
-    table = Gtk::Table.new 3, 3, true
+    table = Gtk::Table.new 4, 3, true
     window.add table
 
     # Button to start the report
@@ -55,6 +56,12 @@ class LabelGui < Gtk::Window
     table.attach putsframe, 0, 3, 2, 3
     putsframe.add @puts
     
+    # Checkbox to instantly print
+    @instaprint = Gtk::CheckButton.new 'Instant Print'
+    @instaprint.active = get_regkey_val( 'instaprint' )
+    table.attach @instaprint, 0, 2, 3, 4
+    @instaprint.signal_connect('toggled') { set_regkey_val( 'instaprint', @instaprint.active?.to_s )  }
+
     # Window management stuff. No touchy!
     window.signal_connect('destroy') { Gtk.main_quit }
     window.show_all
@@ -89,10 +96,77 @@ class LabelGui < Gtk::Window
       
       gui_puts 'Please Wait'
       
+      q = RDTQuery.new 'http://centrex.redetrack.com/redetrack/bin/report.php?report_locations_list=T&select_div_last_shown=&report_limit_to_top_locations=N&action=ordtrack&num=OR0000857779&num_raisedtrack=&status=999&pod=A&status_code=&itemtype=&location=&value_location=&tf=current&days=365&befaft=b&dd=09&mon=08&yyyy=2013&fdays=1&fbefaft=a&fdd=09&fmon=08&fyyyy=2013&ardd=09&armon=08&aryyyy=2012'
+      q.set_dates( today )
+      
+      r = RDTQuery.new 'http://centrex.redetrack.com/redetrack/bin/report.php?report_locations_list=T&select_div_last_shown=&report_limit_to_top_locations=N&action=custordtrack&num=INC000000814606&num_raisedtrack=&status=&pod=A&status_code=&itemtype=&location=&value_location=&tf=current&days=365&befaft=b&dd=23&mon=08&yyyy=2013&fdays=1&fbefaft=a&fdd=23&fmon=08&fyyyy=2013&ardd=23&armon=08&aryyyy=2012'
+      r.set_dates( today )
+      
+      s = RDTQuery.new 'http://centrex.redetrack.com/redetrack/bin/report.php?report_locations_list=T&select_div_last_shown=&report_limit_to_top_locations=N&action=stockstatus&num=325-333-814&num_raisedtrack=&status=&pod=A&status_code=&itemtype=&location=&value_location=&tf=current&days=365&befaft=b&dd=26&mon=10&yyyy=2013&timetype=any&fdays=1&fbefaft=a&fdd=26&fmon=10&fyyyy=2013&ardd=26&armon=10&aryyyy=2012'
+      s.set_dates( today )
+      
       # Let's do this thing!
       m = MechReporter.new
-      keys = get_key.map { |k| m.cntxify( k ) }
-      m.print_prompt( m.save_labels( keys, label_selected ) )
+      
+      # We're going to take our list of CNTX and OR numbers and only end up with CNTX numbers
+      keys = get_key.map do |k|
+        
+        # If it's an OR number
+        if k =~ /^OR/i
+          
+          # Look up the "Returns" against this Order
+          q[ 'num' ] = k
+          res = m.run( q )
+          
+          # If there's no result, map nil
+          if res.maxrow == 1
+            nil
+            
+          # If there's a result, map the OR into all the CNTX numbers.
+          else
+            res.ch( 'Bar Code' ).each_wh.to_a
+          end
+        
+        elsif k =~ /^INC/i
+          
+          # Look up the "Returns" against this Order
+          r[ 'num' ] = k
+          res = m.run( r )
+          
+          # If there's no result, map nil
+          if res.maxrow == 1
+            nil
+
+          # If there's a result, map the OR into all the CNTX numbers.
+          else
+            res.ch( 'Bar Code' ).each_wh.to_a
+          end
+        
+        # If it's a CNTX or STK, leave it alone
+        elsif k =~ /^CNTX|^STK/i
+        
+          k
+
+        # If its a serial number
+        else
+          s[ 'num' ] = k
+          res = m.run( s )
+          if res.empty?
+            nil
+          else
+            res.last_row.val('Bar Code')
+          end
+          #raise ArgumentError, 'Invalid CNTX / OR Number: ' + k
+        end
+        
+      end.flatten.compact
+      
+      # Get the labels and open the print dialog
+      if @instaprint.active?
+        m.print_label( m.save_labels( keys, label_selected ) )
+      else
+        m.print_prompt( m.save_labels( keys, label_selected ) )
+      end
       
       sleep 2
       
@@ -116,7 +190,7 @@ class LabelGui < Gtk::Window
   
   # Filename for ( Documents / My Documents ) list.txt
   def get_filename
-    Win32::Registry::HKEY_CURRENT_USER.open('SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders')['Personal'] + '\\list.txt'
+    Win32::Registry::HKEY_CURRENT_USER.open('SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders')['Personal'] + '\\labelGUI.txt'
   end
   
   # Extract the contents of list.txt into an array
