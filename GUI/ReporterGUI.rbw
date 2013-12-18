@@ -7,6 +7,7 @@ require_relative '../MechReporter' # Reporter and link to RubyExcel
 
 class ReporterGUI < Gtk::Window
   include RegistryTools
+  include DateTools
 
   # Workshop Reports URI keys
   WorkshopReportKeys = {
@@ -94,6 +95,19 @@ class ReporterGUI < Gtk::Window
     
     mb.append menutitle
     table.attach mb, 0, 1, 3, 4
+    
+    # Set up a menu of Preset Reports
+    submenu2 = Gtk::Menu.new
+    menutitle = Gtk::MenuItem.new 'Preset Reports'
+    menutitle.set_submenu submenu2
+  
+    presets = [] 
+    submenu2.append Gtk::MenuItem.new('CNTX Report').tap { |item| item.signal_connect("activate") { @uri_input.text = RDTQuery.new('http://centrex.redetrack.com/redetrack/bin/report.php?report_locations_list=T&select_div_last_shown=&report_limit_to_top_locations=N&action=boxtrack&num=CNTX0001373311&num_raisedtrack=&status=&pod=A&status_code=&itemtype=&location=&value_location=&tf=current&days=365&befaft=b&dd=16&mon=12&yyyy=2013&timetype=any&fdays=1&fbefaft=a&fdd=16&fmon=12&fyyyy=2013&ardd=16&armon=12&aryyyy=2012').set_dates(today).to_s } }
+    submenu2.append Gtk::MenuItem.new('PO Report').tap { |item| item.signal_connect("activate") { @uri_input.text = RDTQuery.new('http://centrex.redetrack.com/redetrack/bin/report.php?report_locations_list=T&select_div_last_shown=&report_limit_to_top_locations=N&action=custordtrack&num=PR063183&num_raisedtrack=&status=&pod=A&status_code=&itemtype=&location=&value_location=&tf=current&days=365&befaft=b&dd=16&mon=12&yyyy=2013&fdays=1&fbefaft=a&fdd=16&fmon=12&fyyyy=2013&ardd=16&armon=12&aryyyy=2012').set_dates(today).to_s } }
+    submenu2.append Gtk::MenuItem.new('Workshop Job Report').tap { |item| item.signal_connect("activate") { @uri_input.text = RDTQuery.new('http://centrex.redetrack.com/redetrack/bin/centrexticketreport.php?reptype=job&item_type=&barcode=CNTX0001380912&engineer=&serial=&custordref=&includeuaj=Yes&groupbyjob=Yes&berhandle=Y&account=&clientnum=&status=-1&statuscurrent=N&days=365&nolimit=0&range=daterange&befaft=b&dd=16&mon=12&yyyy=2013&depot=Centrex+Computing+Services&action=ticketreport&go=Search').set_dates(today).to_s } }
+    submenu2.append Gtk::MenuItem.new('Workshop History Report').tap { |item| item.signal_connect("activate") { @uri_input.text = RDTQuery.new('http://centrex.redetrack.com/redetrack/bin/centrexticketreport.php?reptype=hist&item_type=&barcode=CNTX0001380912&engineer=&serial=&custordref=&groupbyjob=Yes&berhandle=D&account=&clientnum=&status=-1&statuscurrent=N&days=365&nolimit=0&range=daterange&befaft=b&dd=16&mon=12&yyyy=2013&depot=Centrex+Computing+Services&action=ticketreport&go=Search').set_dates(today).to_s } }
+    
+    mb.append menutitle
     
     # Window management stuff. No touchy!
     window.signal_connect('destroy') { Gtk.main_quit }
