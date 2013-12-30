@@ -84,7 +84,7 @@ class AutoReport
         if automation
           retry
         else
-          # Only hold the console window open if run manually
+          # Only hold the console window open if not automated
           gets
           exit
         end
@@ -93,11 +93,27 @@ class AutoReport
       
     end # errorhandler
     
-    # Send email and log success if automated and successful
     if automation
-      sendmail
-      File.write( checkname, today )
-    end
+      
+      begin
+      
+        # Send email and log success if automated and successful
+        sendmail
+        File.write( checkname, today )
+      
+      # Catch failures like invalid email addresses
+      rescue => err
+        
+        # Display error in console
+        puts ( error_details = "#{ err.message }\n\n#{ err.backtrace.join($/) }" )
+        
+        # Email failure message
+        logerror( "#{ Time.now }\n#{ error_details }" ) if automation && !test
+        raise err
+        
+      end # errorhandler
+      
+    end # if automation
     
   end # run
   
