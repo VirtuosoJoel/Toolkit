@@ -329,7 +329,7 @@ class MechReporter
   
   def run_keyed( uri, keys, keyname = 'num', test = false )
   
-    # Avoid modifying the variable passed into the method
+    # Avoid modifying the variable passed into the method (and avoid blanks)
     keys = keys.compact
   
     # Set the upper byte limit for the URI
@@ -342,7 +342,7 @@ class MechReporter
     current_query[ keyname ] = ''
     
     # Determine the maximum references we can report with
-    allowed_extra = maxlen - current_query.to_s.bytesize
+    allowed_extra = maxlen - URI.escape( current_query.to_s ).bytesize
     
     # Create an empty sheet to populate with data
     res = RubyExcel::Workbook.new.add
@@ -357,11 +357,10 @@ class MechReporter
       internal_puts 'Remaining: ' + keys.length.to_s
       
       # Keep building the string until we hit the limit
-      until keys.empty? || stringy.bytesize + keys.last.bytesize >= allowed_extra
+      until keys.empty? || URI.escape( stringy ).bytesize + URI.escape( keys.last ).bytesize >= allowed_extra
     
         # Take from array, add to string
-        stringy << keys.pop
-        stringy << '|'
+        stringy << keys.pop << '|'
       
       end
       
