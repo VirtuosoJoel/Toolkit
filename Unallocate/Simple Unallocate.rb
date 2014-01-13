@@ -39,6 +39,8 @@ class UnallocateTool
       # send the request to the server
       m.agent.get query
       
+      puts 'Unassigned ' + query[ 'bc' ]
+      
     end # loop
     
   rescue => error
