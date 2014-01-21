@@ -499,8 +499,13 @@ class MechReporter
     
       # Run the report, stepping through the dates until the end
       ( from..to ).each_slice( step ) { |range|
-        puts "Running date range #{ range.first.strftime( '%d/%m/%y' ) } - #{ range.last.strftime( '%d/%m/%y' ) }"
-        ret << m.run( query.set_dates( range.first, range.last ) ) rescue retry
+        begin
+          puts "Running date range #{ range.first.strftime( '%d/%m/%y' ) } - #{ range.last.strftime( '%d/%m/%y' ) }"
+          ret << m.run( query.set_dates( range.first, range.last ) ) rescue retry
+        rescue => err
+          puts err, 'retrying'
+          retry
+        end
         internal_puts ret.maxrow.to_s + ' lines'
       }
     
@@ -722,15 +727,15 @@ class RDTQuery
   
   def set_dates( start_date, end_date = nil )
   
-    #If the end date isn't specified, default to sameday
+    # If the end date isn't specified, default to sameday
     end_date ||= start_date
     
-    #Break the dates into a hash query format. 
+    # Break the dates into a hash query format. 
     hash = [ [ start_date, { dd: '%d', mon: '%m', yyyy: '%Y' } ] , [ end_date, { todd: '%d', tomon: '%m', toyyyy: '%Y' } ] ].inject({}) do |h, ( date, args )|
       args.each { |k,v| h[k.to_s] = date.strftime(v) } ; h
     end
 
-    #Update the query with the new values
+    # Update the query with the new values
     update_query( hash )
   end
   
@@ -747,7 +752,7 @@ class RDTQuery
   
     set_dates( start_datetime.to_date, end_datetime.to_date )
   
-    #Break the dates into a hash query format. 
+    # Break the dates into a hash query format. 
     hash = [ [ start_datetime, { fthours: '%H', ftmins: '%M' } ] , [ end_datetime, { tthours: '%H', ttmins: '%M' } ] ].inject({}) do |h, ( date, args )|
       args.each { |k,v| h[k.to_s] = date.strftime(v) } ; h
     end
@@ -755,7 +760,7 @@ class RDTQuery
     hash[ 'timetype' ] = 'between'
     hash[ 'befaft' ] = 'f'
     
-    #Update the query with the new values
+    # Update the query with the new values
     update_query( hash )
   end
   
@@ -767,10 +772,10 @@ class RDTQuery
   
   def update_query( hash )
   
-    #Convert symbols to strings to avoid duplicate entries
+    # Convert symbols to strings to avoid duplicate entries
     hash = Hash[hash.map {|k, v| [ k.to_s, v] }] if hash.keys.any? { |k| k.is_a?(Symbol) }
     
-    #Merge the changes with the existing query
+    # Merge the changes with the existing query
     query.query_values = query.query_values.merge!( hash )
     
     self
