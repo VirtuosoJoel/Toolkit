@@ -304,7 +304,11 @@ class Booking < RDT
     driver.text_field(:id => 'orderclientnum_1').set ( warranty ? "#{ data[:RP] } Warranty" : data[:RP] )
     driver.text_field(:id => 'orderlinenum_1').set data[:VR]
     driver.checkbox(:id => 'orderwclaim_1').when_present.set if warranty
-    notesfield = driver.text_field(:id => 'orderparcelnotes_1')
+    
+    clicknotesfield = driver.text_field(:id => 'orderparcelnotes_1')
+    notesfield = driver.text_field(:id => 'zta_text_1')
+    
+    clicknotesfield.click
     notesfield.set data[:Destination] + ( warranty ? "\n - Warranty" : '' )
     if data[:Fault]
       notesfield.send_keys :enter, :enter, ' *** ', data[:Fault]
