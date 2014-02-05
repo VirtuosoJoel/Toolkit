@@ -302,6 +302,10 @@ class MechReporter
     login
     internal_puts 'running report...'
     
+    # Convert the report to only return a csv
+    uri = RDTQuery.new( uri )
+    uri[ 'givecsvonly' ] = 'Yes'
+    
     # Get the report page from our list of arguments
     page = agent.get( uri.to_s )
     
